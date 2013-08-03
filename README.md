@@ -18,11 +18,14 @@ Edit your bundles/dynamodb/config/config.php
 		'region' => '<amazon zone>', // eg. eu-west-1
 	);
   
-#Available Methods
-
-Getting an Item
+#Usage
+creating a DynamoDB object
 
 	$query = DynamoDB::table('users');
+
+
+Getting an Item
+	
 
 	// getting an item with HASH key only
 	$query->getItem(array('email' => 'test@test.com'))
@@ -37,4 +40,16 @@ Getting an Item
 	$query->select('id','username')->getItem(array('email' => 'test@test.com'))
 
 	$query->select('id')->addSelect('username')->getItem(array('email' => 'test@test.com'))
+
+Updating item's attributes
+
+	...
+	
+Deleting item's attributes
+
+	...
+	
+Deleting item
+
+	...
 
