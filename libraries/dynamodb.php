@@ -4,7 +4,12 @@
 
 class DynamoDB {
 	private static $client = null;
+	
 	private $table = null;
+	private $select = array();
+	private $where = array();
+	private $error_code = null;
+	private $error_message = null;
 
 	
 	public static function table($table) {
@@ -56,13 +61,38 @@ class DynamoDB {
 		$this->table = $table;
 		$this->consistent_read = true;
 	}
-	public function get($key) {
-		$response = self::$client->getItem(array(
+	public function select() {
+		$this->select = array();
+		foreach (func_get_args() as $field )
+			$this->select[$field] = '';
+	}
+	public function addSelect($field) {
+		$this->select[$field] = '';
+	}
+	public function consistentRead($cr) {
+		$this->consistent_read = $cr;
+	}
+	public function getItem($key) {
+		$query = array(
 			"TableName" => $this->table,
 			"Key" => self::anormalizeItem($key),
-			"ConsistentRead" => $this->consistent_read,
-		))->toArray();	
-		return self::normalizeItem($response['Item']);
+		);
+		
+		$query["ConsistentRead"] = $this->consistent_read;
+		if (count($this->select))
+			$query["AttributesToGet"] = array_keys($this->select);
+
+		try {
+			$response = self::$client->getItem($query)->toArray();
+		} catch ( \Exception $e ) {
+			$this->error_message = $e->getMessage();
+			return false;
+		}		
+
+		if (isset($response['Item']))
+			return array(self::normalizeItem($response['Item']));
+			
+		return array();
 	}
 }
 
