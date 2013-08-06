@@ -75,9 +75,12 @@ Updating item's attributes
 		->where('date','=',1375538399)
 		->update(array('seen' => "yes"))
 	
-Deleting item's attributes
+Deleting item's attribute(s)
 
-	...
+	DynamoDB::table('messages')
+		->where('to','=','user1@test.com')
+		->where('date','=', 1375538399)
+		->delete('seen','subject');
 	
 Deleting item
 
