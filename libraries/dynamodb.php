@@ -53,7 +53,17 @@ class DynamoDB {
 			}
 			return $ret;
 		}
-
+		public static function anormalizeList( $arr ) {
+			$ret = array();
+			foreach ($arr as $k => $v) {
+				$type = 'S';
+				if (\is_numeric($v))
+					$type = 'N';
+				
+				$ret[$k] = array( $type => (string) $v );
+			}
+			return $ret;
+		}
 	
 	
 	
@@ -88,9 +98,10 @@ class DynamoDB {
 		$this->consistent_read = $cr;
 	}
 	public function getItem($key) {
+
 		$query = array(
 			"TableName" => $this->table,
-			"Key" => self::anormalizeItem($key),
+			"Key" => self::anormalizeList($key),
 		);
 		
 		$query["ConsistentRead"] = $this->consistent_read;
@@ -109,9 +120,9 @@ class DynamoDB {
 			
 		return array();
 	}
-	public function update($items) {
+	public function update($attrz) {
 		$to_update = array();
-		foreach ($items as $k => $v) {
+		foreach ($attrz as $k => $v) {
 			$type = 'S';
 			if (is_numeric($v))
 				$type = 'N';
@@ -134,6 +145,22 @@ class DynamoDB {
 			return false;
 		}
 		return array();
+	}
+	public function delete($attrz = false) {
+		if (is_array($attrz) && count($attrz)) {
+		} else {
+			$query = array(
+				"TableName" => $this->table,
+				"Key" => self::anormalizeItem($this->where),
+			);
+			try {
+				$response = self::$client->DeleteItem($query)->toArray();
+			} catch ( \Exception $e ) {
+				$this->error_message = $e->getMessage();
+				return false;
+			}
+			return array();
+		}
 	}
 }
 
