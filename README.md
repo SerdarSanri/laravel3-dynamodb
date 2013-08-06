@@ -47,17 +47,21 @@ Getting an Item
 	$user = $users->getItem(array('email' => 'test@test.com'))
 
 	// getting an item from a HASH-RANGE table
-	$m = $message->getItem(array('to' => 'user1@test.com', 'date' => (int) 1375538399 ))
+	$message->getItem(array('to' => 'user1@test.com', 'date' => (int) 1375538399 ))
 
 	// obtaining only specific attributes
-	$user = $users->select('email','registered_at')->getItem(array('email' => 'test@test.com'))
+	$users->select('email','registered_at')->getItem(array('email' => 'test@test.com'))
 
-	// specific attributes
+	// adding more attributes to retrieve to select
 	$query->select('email')->addSelect('registered_at')->getItem(array('email' => 'test@test.com'))
 
 Updating item's attributes
 
-	...
+	// update multiple attribute values of a HASH table
+	$users->where('email','=','test@test.com')->update(array('password' => 'qwert', 'firstname' => 'Smith'))
+	
+	// update one item attribute in a HASH-RANGE table
+	$messages->where('to','=','user1@test.com')->where('date','=','1375538399')->update(array('seen' => "yes"))
 	
 Deleting item's attributes
 
