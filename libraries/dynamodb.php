@@ -61,14 +61,29 @@ class DynamoDB {
 		$this->table = $table;
 		$this->consistent_read = true;
 	}
+	
+	public function getLastError() {
+		return $this->error_message;
+	}
 	public function select() {
 		$this->select = array();
 		foreach (func_get_args() as $field )
 			$this->select[$field] = '';
+			
+		return $this;
 	}
 	public function addSelect($field) {
 		$this->select[$field] = '';
+		return $this;
 	}
+	public function where($key,$operation,$value) {
+		if ($operation == '=') {
+			$this->where[$key] = $value;		
+		}
+		return $this;
+	}	
+	
+	
 	public function consistentRead($cr) {
 		$this->consistent_read = $cr;
 	}
@@ -90,8 +105,34 @@ class DynamoDB {
 		}		
 
 		if (isset($response['Item']))
-			return array(self::normalizeItem($response['Item']));
+			return self::normalizeItem($response['Item']);
 			
+		return array();
+	}
+	public function update($items) {
+		$to_update = array();
+		foreach ($items as $k => $v) {
+			$type = 'S';
+			if (is_numeric($v))
+				$type = 'N';
+				
+			$to_update[$k] = array(
+				'Value' => array($type => $v),
+				'Action' => 'PUT'
+			);
+		}
+		$query = array(
+			"TableName" => $this->table,
+			"Key" => self::anormalizeItem($this->where),
+			"AttributeUpdates" => $to_update,
+		);
+
+		try {
+			$response = self::$client->UpdateItem($query)->toArray();
+		} catch ( \Exception $e ) {
+			$this->error_message = $e->getMessage();
+			return false;
+		}
 		return array();
 	}
 }
