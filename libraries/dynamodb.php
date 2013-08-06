@@ -146,9 +146,31 @@ class DynamoDB {
 		}
 		return array();
 	}
-	public function delete($attrz = false) {
-		if (is_array($attrz) && count($attrz)) {
+	public function delete() {
+		if (count(func_get_args())) {
+			// delete attributes
+			$to_delete = array();
+			foreach (func_get_args() as $v) {
+					
+				$to_delete[$v] = array(
+					'Action' => 'DELETE',
+				);
+			}
+			$query = array(
+				"TableName" => $this->table,
+				"Key" => self::anormalizeItem($this->where),
+				"AttributeUpdates" => $to_delete,
+			);
+			try {
+				$response = self::$client->UpdateItem($query)->toArray();
+			} catch ( \Exception $e ) {
+				$this->error_message = $e->getMessage();
+				return false;
+			}
+			return array();		
+
 		} else {
+			// delete item
 			$query = array(
 				"TableName" => $this->table,
 				"Key" => self::anormalizeItem($this->where),
