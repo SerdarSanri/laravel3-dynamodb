@@ -61,7 +61,7 @@ Updating item's attributes
 	$users->where('email','=','test@test.com')->update(array('password' => 'qwert', 'firstname' => 'Smith'))
 	
 	// update one item attribute in a HASH-RANGE table
-	$messages->where('to','=','user1@test.com')->where('date','=','1375538399')->update(array('seen' => "yes"))
+	$messages->where('to','=','user1@test.com')->where('date','=',1375538399)->update(array('seen' => "yes"))
 	
 Deleting item's attributes
 
@@ -69,5 +69,9 @@ Deleting item's attributes
 	
 Deleting item
 
-	...
+	// delete an item from a HASH table
+	DynamoDB::table('users')->where('email','=','test@test.com')->delete()
+	
+	// delete an item from a HASH-RANGE table
+	DynamoDB::table('messages')->where('to','=','user1@test.com')->where('date','=', 1375538399 )->delete()
 
