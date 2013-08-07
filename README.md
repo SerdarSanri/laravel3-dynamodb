@@ -45,22 +45,27 @@ Get Item
 
 	// getting an item with HASH key only
 	DynamoDB::table('users')
-		->getItem(array('email' => 'test@test.com'))
+		->where('email','=','test@test.com')
+		->get()
 
 	// getting an item from a HASH-RANGE table
 	DynamoDB::table('messages')
-		->getItem(array('to' => 'user1@test.com', 'date' => (int) 1375538399 ))
+		->where('to','=','user1@test.com')
+		->where('date','=', (int) 1375538399 )
+		->get()
 
 	// specifying what attributes to return
 	DynamoDB::table('users')
 		->select('email','registered_at')
-		->getItem(array('email' => 'test@test.com'))
+		->where('email','=','test@test.com')
+		->get()
 
 	// specifying what attributes to return, dynamically
 	$query = DynamoDB::table('users')
 	$query->select('email')
 	$query->addSelect('registered_at')
-	$query->getItem(array('email' => 'test@test.com'))
+	$query->where('email','=','test@test.com')
+	$query->get()
 
 Insert Item (replaces existing items)
 
