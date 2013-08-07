@@ -97,6 +97,29 @@ class DynamoDB {
 	public function consistentRead($cr) {
 		$this->consistent_read = $cr;
 	}
+	
+	public function get() {
+		$query = array(
+			"TableName" => $this->table,
+			"Key" => self::anormalizeItem($this->where),
+		);
+		$query["ConsistentRead"] = $this->consistent_read;
+		
+		if (count($this->select))
+			$query["AttributesToGet"] = array_keys($this->select);
+
+		try {
+			$response = self::$client->getItem($query)->toArray();
+		} catch ( \Exception $e ) {
+			$this->error_message = $e->getMessage();
+			return false;
+		}
+		
+		if (isset($response['Item']))
+			return self::normalizeItem($response['Item']);
+
+		return array();	
+	}
 	public function getItem($key) {
 
 		$query = array(
