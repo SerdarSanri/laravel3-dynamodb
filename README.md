@@ -40,7 +40,7 @@ DynamoDB Object
 	$users = DynamoDB::table('users');
 	$messages = DynamoDB::table('messages');
 
-Getting an Item
+Get Item
 	
 
 	// getting an item with HASH key only
@@ -62,27 +62,43 @@ Getting an Item
 	$query->addSelect('registered_at')
 	$query->getItem(array('email' => 'test@test.com'))
 
-Updating item's attributes
+Insert Item (replaces existing items)
 
-	// update multiple attribute values of a HASH table
+	DynamoDB::table('users')->insert(array(
+		'email' => 'test@test.com',
+		'password' => 'qwert',
+		'created_at' => time(),
+	));
+	
+	DynamoDB::table('messages')->insert(array(
+		'to' => 'test@test.com',
+		'date' => time(),
+		'subject' => 'Foo',
+		'message' => 'Bar',
+	));
+
+
+Update Item's Attribute(s)
+
+	// update multiple attributes in a HASH table
 	DynamoDB::table('users')
 		->where('email','=','test@test.com')
 		->update(array('password' => 'qwert', 'firstname' => 'Smith'))
 	
-	// update one item attribute in a HASH-RANGE table
+	// update 1 attribute in a HASH-RANGE table
 	DynamoDB::table('messages')
 		->where('to','=','user1@test.com')
 		->where('date','=',1375538399)
 		->update(array('seen' => "yes"))
 	
-Deleting item's attribute(s)
+Delete Item's Attribute(s)
 
 	DynamoDB::table('messages')
 		->where('to','=','user1@test.com')
 		->where('date','=', 1375538399)
 		->delete('seen','subject');
 	
-Deleting item
+Delete Item
 
 	// delete an item from a HASH table
 	DynamoDB::table('users')
