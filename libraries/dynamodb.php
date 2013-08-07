@@ -146,6 +146,24 @@ class DynamoDB {
 		}
 		return array();
 	}
+	
+	public function insert($item) {
+		$to_insert = self::anormalizeItem($item);
+
+		$query = array(
+			"TableName" => $this->table,
+			"Item" => $to_insert,
+		);
+
+		try {
+			$response = self::$client->PutItem($query)->toArray();
+		} catch ( \Exception $e ) {
+			$this->error_message = $e->getMessage();
+			return false;
+		}
+		return array();
+	}
+	
 	public function delete() {
 		if (count(func_get_args())) {
 			// delete attributes
