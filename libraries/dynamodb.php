@@ -39,7 +39,7 @@ class DynamoDB {
 			$ret = array();
 			foreach ($item as $k => $v) {
 				$type = 'S';
-				if (\is_numeric($v))
+				if (\gettype($v) == 'integer')
 					$type = 'N';
 				
 				$ret[$k] = array( $type => (string) $v );
@@ -57,7 +57,7 @@ class DynamoDB {
 			$ret = array();
 			foreach ($arr as $k => $v) {
 				$type = 'S';
-				if (\is_numeric($v))
+				if (\gettype($v) == 'integer')
 					$type = 'N';
 				
 				$ret[$k] = array( $type => (string) $v );
@@ -147,7 +147,7 @@ class DynamoDB {
 		$to_update = array();
 		foreach ($attrz as $k => $v) {
 			$type = 'S';
-			if (is_numeric($v))
+			if (\gettype($v) == 'integer')
 				$type = 'N';
 				
 			$to_update[$k] = array(
