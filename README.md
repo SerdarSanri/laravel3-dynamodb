@@ -29,18 +29,29 @@ email `hash` | password | registed_at
 **test@test.com** | test123 | *1375538399*
 
 
-Table **messages** with HASH and RANGE key
+Table **messages** with HASH and RANGE (int) key
 
 to `hash` | date `range` | from | subject | message_body 
 --- | --- | --- | --- | ---
 **user1@test.com** | **1375538399** | user2@test.com | Hello User1 | Goodbye User1
+**user2@test.com** | **1384167887** | somebody@otherdomain.com | Foo | Bar
+
+
+Table **statistics** with HASH and RANGE (string) key
+
+site `hash` | day `range` | visitors | unique_visitors | pageviews | unique_pageviews
+--- | --- | --- | --- | --- | ---
+**mydomain.com** | **2013-11-01 21:00:00** | 100 | 50 | 200 | 150
+**mydomain.com** | **2013-11-01 23:00:00** | 90 | 40 | 100 | 95
+
+
 
 DynamoDB Object
 
 	$users = DynamoDB::table('users');
 	$messages = DynamoDB::table('messages');
 
-Get Item
+**Get Item**
 	
 
 	// getting an item with HASH key only
@@ -67,7 +78,7 @@ Get Item
 	$query->where('email','=','test@test.com')
 	$query->get()
 
-Insert Item (replaces existing items)
+**Insert Item (replaces existing items)**
 
 	DynamoDB::table('users')->insert(array(
 		'email' => 'test@test.com',
@@ -83,7 +94,7 @@ Insert Item (replaces existing items)
 	));
 
 
-Update Item's Attribute(s)
+**Update Item's Attribute(s)**
 
 	// update multiple attributes in a HASH table
 	DynamoDB::table('users')
@@ -95,15 +106,15 @@ Update Item's Attribute(s)
 		->where('to','=','user1@test.com')
 		->where('date','=',1375538399)
 		->update(array('seen' => "yes"))
-	
-Delete Item's Attribute(s)
+
+**Delete Item's Attribute(s)**
 
 	DynamoDB::table('messages')
 		->where('to','=','user1@test.com')
 		->where('date','=', 1375538399)
 		->delete('seen','subject');
 	
-Delete Item
+**Delete Item**
 
 	// delete an item from a HASH table
 	DynamoDB::table('users')
@@ -116,3 +127,20 @@ Delete Item
 		->where('date','=', 1375538399 )
 		->delete()
 
+**Query** (only possible on HASH and RANGE tables)
+
+	// base query to return all records from 2013-11-01 until now
+	DynamoDB::table('statistics')
+	->where('domain','=','mydomain.com')
+	->where('day','>=','2013-11-01')
+	->get()
+
+	// only return specified fields and limit to 10 results
+	DynamoDB::table('statistics')
+	->select('unique_visitors','unique_pageviews')
+	->where('domain','=','mydomain.com')
+	->where('day','>=','2013-11-01')
+	->take(10)
+	->get()
+	
+	
