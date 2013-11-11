@@ -8,9 +8,11 @@ class DynamoDB {
 	private $table = null;
 	private $select = array();
 	private $where = array();
+	private $whereOther = array();
+	private $consistent_read = true;
+	private $limit = null;
 	private $error_code = null;
 	private $error_message = null;
-
 	
 	public static function table($table) {
 		require_once __DIR__ . "/aws.phar";	
@@ -64,6 +66,27 @@ class DynamoDB {
 			}
 			return $ret;
 		}
+		private function anormalizeQuery () {
+			$anormal = array();
+			foreach ($this->where as $key => $value) {
+				$anormal[$key] = array(
+					'ComparisonOperator' => 'EQ',
+					'AttributeValueList' => self::anormalizeItem(array($value)) ,
+				);
+			}
+			foreach ($this->whereOther as $key => $value ) {
+				$whereVal = array();
+				$whereVal[$value['type']] = $value['value'];
+				$anormal[$key] = array(
+					'ComparisonOperator' => $value['type'],
+					'AttributeValueList' => is_array($value['value']) ? array(
+						array('S' => $value['value'][0]),
+						array('S' => $value['value'][1])
+					): self::anormalizeItem(array($value['value'])),	
+				);
+			}
+			return $anormal;
+		}
 	
 	
 	
@@ -72,6 +95,15 @@ class DynamoDB {
 		$this->consistent_read = true;
 	}
 	
+	public function resetAfterQuery() {
+		$this->table = null;
+		$this->select = array();
+		$this->where = array();
+		$this->whereOther = array();
+		$this->consistent_read = true;
+		$this->limit = null;
+	}
+
 	public function getLastError() {
 		return $this->error_message;
 	}
@@ -89,36 +121,35 @@ class DynamoDB {
 	public function where($key,$operation,$value) {
 		if ($operation == '=') {
 			$this->where[$key] = $value;		
+		} else {
+			if ($operation == '<=') $operation = 'LE';
+			if ($operation == '<') $operation = 'LT';
+			if ($operation == '>=') $operation = 'GE';
+			if ($operation == '>') $operation = 'GT';
+
+			$this->whereOther[$key] = array(
+				'type' => $operation,
+				'value'=> $value,
+			);
 		}
 		return $this;
 	}	
 	
+	public function take($limit) {
+		$this->limit = $limit;
+		return $this;
+	}
 	
 	public function consistentRead($cr) {
 		$this->consistent_read = $cr;
+		return $this;
 	}
 	
 	public function get() {
-		$query = array(
-			"TableName" => $this->table,
-			"Key" => self::anormalizeItem($this->where),
-		);
-		$query["ConsistentRead"] = $this->consistent_read;
-		
-		if (count($this->select))
-			$query["AttributesToGet"] = array_keys($this->select);
-
-		try {
-			$response = self::$client->getItem($query)->toArray();
-		} catch ( \Exception $e ) {
-			$this->error_message = $e->getMessage();
-			return false;
-		}
-		
-		if (isset($response['Item']))
-			return self::normalizeItem($response['Item']);
-
-		return array();	
+		if (count($this->whereOther))
+			return $this->query();
+	
+		return $this->getItem($this->where);
 	}
 	public function getItem($key) {
 
@@ -134,14 +165,56 @@ class DynamoDB {
 		try {
 			$response = self::$client->getItem($query)->toArray();
 		} catch ( \Exception $e ) {
+			$this->resetAfterQuery();
 			$this->error_message = $e->getMessage();
 			return false;
 		}		
+
+		$this->resetAfterQuery();
 
 		if (isset($response['Item']))
 			return self::normalizeItem($response['Item']);
 			
 		return array();
+	}
+	public function query() {
+
+		$query = array(
+			"TableName" => $this->table,
+			"KeyConditions" => $this->anormalizeQuery(),
+		);
+
+		$query["ConsistentRead"] = $this->consistent_read;
+		
+		if ($this->limit !== null)
+			$query['Limit'] = $this->limit;
+
+		//if (this.direction !== null) {
+		//	if (this.direction == 'DESC')
+		//		thisQuery['ScanIndexForward'] = false;
+		//}
+		//if ( this.index !== null ) {
+		//	thisQuery['IndexName'] = this.index;
+		//}
+		//if ( this.ExclusiveStartKey !== null ) {
+		//	thisQuery['ExclusiveStartKey'] = this.ExclusiveStartKey;
+		//}
+		if (count($this->select))
+			$query["AttributesToGet"] = array_keys($this->select);
+
+		try {
+			$response = self::$client->Query($query)->toArray();
+		} catch ( \Exception $e ) {
+			$this->error_message = $e->getMessage();
+			return false;
+		}	
+
+		
+		//$this.LastEvaluatedKey = data.LastEvaluatedKey === undefined ? null : data.LastEvaluatedKey;
+		if (isset($response['Items']))
+			return self::normalizeList($response['Items']);
+			
+		return array();	
 	}
 	public function update($attrz) {
 		$to_update = array();
@@ -224,6 +297,19 @@ class DynamoDB {
 			}
 			return array();
 		}
+	}
+	
+	function scan() {	
+		try {
+			$response = self::$client->scan(array(
+				"TableName" => $this->table,
+			));
+		} catch ( \Exception $e ) {
+			die($e->getMessage());
+		//	$this->error_message = $e->getMessage();
+			return false;
+		}
+		return self::normalizeList($response['Items']);
 	}
 }
 
