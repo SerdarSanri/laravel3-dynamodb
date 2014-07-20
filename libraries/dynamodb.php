@@ -254,6 +254,33 @@ class DynamoDB {
 		return array();
 	}
 	
+	public function increment($attrz) {
+		$to_update = array();
+		foreach ($attrz as $k => $v) {
+			$type = 'S';
+			if (\gettype($v) == 'integer')
+				$type = 'N';
+				
+			$to_update[$k] = array(
+				'Value' => array($type => $v),
+				'Action' => 'ADD'
+			);
+		}
+		$query = array(
+			"TableName" => $this->table,
+			"Key" => self::anormalizeItem($this->where),
+			"AttributeUpdates" => $to_update,
+		);
+
+		try {
+			$response = self::$client->UpdateItem($query)->toArray();
+		} catch ( \Exception $e ) {
+			$this->error_message = $e->getMessage();
+			return false;
+		}
+		return array();
+	}	
+	
 	public function insert($item) {
 		$to_insert = self::anormalizeItem($item);
 
