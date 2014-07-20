@@ -107,6 +107,24 @@ DynamoDB Object
 		->where('date','=',1375538399)
 		->update(array('seen' => "yes"))
 
+
+**Increment Item's Attribute(s)**
+
+	// increment 1 attribute in a HASH table 
+	DynamoDB::table('users')
+		->where('email','=','test@test.com')
+		->increment(array('login_count' => 1))
+		
+	// increment multiple attributes in a HASH-RANGE table
+	DynamoDB::table('statistics')
+		->where('domain','=','mydomain.com')
+		->where('day','=','2013-11-01')
+		->increment(array(
+			'visitors' => 1,
+			'page_views' => 5,
+			'unique_page_views' => 1,
+		))
+
 **Delete Item's Attribute(s)**
 
 	DynamoDB::table('messages')
@@ -131,16 +149,16 @@ DynamoDB Object
 
 	// base query to return all records from 2013-11-01 until now
 	DynamoDB::table('statistics')
-	->where('domain','=','mydomain.com')
-	->where('day','>=','2013-11-01')
-	->get()
+		->where('domain','=','mydomain.com')
+		->where('day','>=','2013-11-01')
+		->get()
 
 	// only return specified fields and limit to 10 results
 	DynamoDB::table('statistics')
-	->select('unique_visitors','unique_pageviews')
-	->where('domain','=','mydomain.com')
-	->where('day','>=','2013-11-01')
-	->take(10)
-	->get()
+		->select('unique_visitors','unique_pageviews')
+		->where('domain','=','mydomain.com')
+		->where('day','>=','2013-11-01')
+		->take(10)
+		->get()
 	
 	
