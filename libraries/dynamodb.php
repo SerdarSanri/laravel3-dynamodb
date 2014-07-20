@@ -11,6 +11,7 @@ class DynamoDB {
 	private $whereOther = array();
 	private $consistent_read = true;
 	private $limit = null;
+	private $direction = null;
 	private $error_code = null;
 	private $error_message = null;
 	
@@ -87,8 +88,7 @@ class DynamoDB {
 			}
 			return $anormal;
 		}
-	
-	
+
 	
 	public function __construct($table) {
 		$this->table = $table;
@@ -144,7 +144,17 @@ class DynamoDB {
 		$this->consistent_read = $cr;
 		return $this;
 	}
-	
+
+	public function orderBy( $index , $direction ) {
+		if ( $index !== null )
+			$this->index = $index;
+		
+		if ( $direction !== null )
+			$this->direction = $direction;
+
+		return $this;
+	}
+
 	public function get() {
 		if (count($this->whereOther))
 			return $this->query();
@@ -189,10 +199,11 @@ class DynamoDB {
 		if ($this->limit !== null)
 			$query['Limit'] = $this->limit;
 
-		//if (this.direction !== null) {
-		//	if (this.direction == 'DESC')
-		//		thisQuery['ScanIndexForward'] = false;
-		//}
+		if ($this->direction !== null) {
+			if ($this->direction == 'DESC')
+				$query['ScanIndexForward'] = false;
+		}
+		
 		//if ( this.index !== null ) {
 		//	thisQuery['IndexName'] = this.index;
 		//}
