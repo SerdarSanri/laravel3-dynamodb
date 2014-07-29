@@ -11,6 +11,7 @@ class DynamoDB {
 	private $whereOther = array();
 	private $consistent_read = true;
 	private $limit = null;
+	private $index = null;
 	private $direction = null;
 	private $error_code = null;
 	private $error_message = null;
@@ -204,9 +205,10 @@ class DynamoDB {
 				$query['ScanIndexForward'] = false;
 		}
 		
-		//if ( this.index !== null ) {
-		//	thisQuery['IndexName'] = this.index;
-		//}
+		if ( $this->index !== null ) {
+			$query['IndexName'] = $this->index;
+		}
+
 		//if ( this.ExclusiveStartKey !== null ) {
 		//	thisQuery['ExclusiveStartKey'] = this.ExclusiveStartKey;
 		//}
