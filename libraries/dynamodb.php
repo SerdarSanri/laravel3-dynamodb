@@ -36,6 +36,8 @@ class DynamoDB {
 					$ret[$k] = $v['S'];
 				if (isset($v['N']))
 					$ret[$k] = (int) $v['N'];
+				if (isset($v['SS']))
+					$ret[$k] = $v['SS'];
 			}
 			return $ret;
 		}
